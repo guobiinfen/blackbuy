@@ -170,6 +170,7 @@
                 imglist: [],
                 //购买数量
                 buyCount: 1,
+                //标记谁被默认选中
                 isSlected: 0,
                 // 页码
                 pageIndex: 1,
@@ -307,6 +308,8 @@
                 this.goodID = to.params.goodID;
                 this.getData();
                 this.buyCount = 1;
+                //默认让商品介绍被选中
+                this.isSlected=0;
 
             }
         }
