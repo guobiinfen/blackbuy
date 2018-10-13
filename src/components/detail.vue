@@ -327,7 +327,7 @@
     .top {
         padding: 10px;
 
-        color: red;
+        color: pink;
         font-size: 50px;
         text-align: center;
         border-radius: 2px;
