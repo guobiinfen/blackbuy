@@ -61,7 +61,8 @@
                         //登录成功后修改登录状态为true
                         this.$store.commit('changeLoginState',true);
                         //从哪里来回哪里去
-                        this.$router.back();
+                        // this.$router.back();
+                        this.$router.go(-1);
 
                     }
                 });
