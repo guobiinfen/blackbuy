@@ -16,23 +16,29 @@
                         <a target="_blank" href="#"></a>
                     </div>
                     <div id="menu" class="right-box">
-                        <span style="display: none;">
-                            <a href="" class="">登录</a>
+                        <!-- 没有登录的时候显示 -->
+                        <span v-show="$store.state.islogined==false">
+                            <!-- <a href="" class="">登录</a> -->
+                            <router-link to="/login">登录</router-link>
                             <strong>|</strong>
                             <a href="" class="">注册</a>
                             <strong>|</strong>
                         </span>
-                        <span>
+                        <!-- 登录的时候显示 -->
+                        <span v-show="$store.state.islogined==true">
                             <a href="" class="">会员中心</a>
                             <strong>|</strong>
-                            <a>退出</a>
+                            <a @click='logout'>退出</a>
                             <strong>|</strong>
                         </span>
-                        <a href="" class="">
-                            <i class="iconfont icon-cart"></i>购物车(
+                        <!-- <a href="" class=""> -->
+                        <router-link to="/shopcart">
+                            <i class="iconfont icon-cart" ref='cart'></i>购物车(
                             <span id="shoppingCartCount">
                                 <span>{{$store.getters.cartTotalCount}}</span>
-                            </span>)</a>
+                            </span>)
+                        </router-link>
+                        <!-- </a> -->
                     </div>
                 </div>
             </div>
@@ -140,9 +146,9 @@
 </template>
 
 <script>
+    import $ from 'jquery';
 
-     /*导入jquery*/
-     import $ from 'jquery';
+
     export default {
         name: 'app',
         mounted() {
@@ -160,14 +166,47 @@
                 $(".over", this).stop().animate({ 'top': '-48px' }, 300); // move up - hide
             });
 
+        },
+        methods: {
+            logout() {
+               
+                  this.$confirm('真的要退出登录吗？5555', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    this.$axios.get('site/account/logout').then(res=>{
+                    console.log(res);
+                    if(res.data.status==0){
+                        this.$message({
+                        type: 'success',
+                        message: '记得常来哦'
+                      
+                    });
+
+                    //.跳转到首页
+                    this.$router.push('/index');
+                    this.$store.commit('changeLoginState',false)
+                    }
+                  
+                })
+                 }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '算你有良心'
+                    });
+                });
+                
+            }
         }
-        
+
 
     }
+
 </script>
 
 <style>
-    #menu2 ul li a span.over{
+    #menu2 ul li a span.over {
         background-color: yellow;
     }
 

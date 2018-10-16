@@ -54,7 +54,8 @@
                                         <dd>
                                             <div id="buyButton" class="btn-buy">
                                                 <button onclick="" class="buy">立即购买</button>
-                                                <button @click="addCart" class="add">加入购物车</button>
+                                                <!-- 添加ref 属性就可用通过tis.$refs.值去获取这个dom元素 -->
+                                                <button @click="addCart" class="add" ref='toCart'>加入购物车</button>
                                             </div>
                                         </dd>
                                     </dl>
@@ -156,6 +157,8 @@
         <BackTop :height="20" :bottom="80">
             <div class="top">❤</div>
         </BackTop>
+        <!-- v-if="imglist.length!=0"  -->
+        <img v-if="imglist.length!=0" ref="flyimg" class='fly-img' :src="imglist[0].original_path" alt="" style="display: none;">
     </div>
 </template>
 
@@ -204,7 +207,10 @@
                     'move_by_click': true,
                     'scroll_items': 5,
                     'choosed_thumb_border_color': "#bbdefb"
-                }
+                },
+                //标记添加购物车时候的动画是否完成的标记,表示默认状态是完成的没有动画状态
+                isFinished: true
+
 
             };
         },
@@ -217,20 +223,20 @@
             getData() {
                 this.images.normal_size = [];
                 this.$axios.get('site/goods/getgoodsinfo/' + this.goodID).then(res => {
-                  
-                   
-                   
+
+
+
                     // console.log(res);
                     this.goodsinfo = res.data.message.goodsinfo;
                     this.hotgoodslist = res.data.message.hotgoodslist;
                     this.imglist = res.data.message.imglist;
-                    
-                     
+
+
                     // let tem_normal_size = [];
                     this.imglist.forEach(v => {
                         this.images.normal_size.push({
-                            'id':v.id,
-                            'url':v.thumb_path
+                            'id': v.id,
+                            'url': v.thumb_path
                         })
                     });
                     // this.images.normal_size=tem_normal_size;
@@ -285,11 +291,56 @@
             },
             //加入购物车提交载荷的方法
             addCart() {
-                this.$store.commit('addCart', {
-                    id: this.goodID,
-                    buyCount: this.buyCount
+                //this指的的是当前的这个组建
+                // console.log(this);
 
-                })
+                //1.判断动画是否完成
+                //动画没有完成，终止这个函数
+                if (this.isFinished == false) return;
+                //动画执行完成说明现在this.isFinished==true,先设置this.isFinished==false，同时代码继续往下执行，
+
+                //2.给加入购物车按钮添加一个禁用按钮的类。因为动化没有完成就不能点击按钮继续添加购物车，防止用户不断的点击按钮产生一些bug
+                this.$(this.$refs.toCart).addClass('disabled');
+
+                //获取按钮的位置
+                let startPos = this.$(this.$refs.toCart).offset();
+                // console.log(startPos);
+                //获取目标位置。首先通过当前组建获取到父组件
+                let targetPos = this.$(this.$parent.$refs.cart).offset();
+                console.log(targetPos);
+
+                //获取要飞的图片
+                this.$(this.$refs.flyimg)
+                .css(startPos)
+                .stop()
+                .show()
+                .addClass('animate')
+               .animate(
+                    {
+                        left: targetPos.left,
+                        top: targetPos.top
+                    },1000,
+                    //回调函数
+                    ()=>{
+                        this.$(this.$refs.flyimg)
+                        .hide()
+                        .removeClass("animate");
+                          // 调用Vuex中的数据修改方法 提交载荷
+                        this.$store.commit('addCart', {
+                        id: this.goodID,
+                        buyCount: this.buyCount
+
+                    })
+                     // 设置标示变量为true即可
+                    this.isFinished == true;
+                      // 移除类名
+                    this.$(this.$refs.toCart).removeClass('disabled');
+                    }
+                )
+
+
+
+               
             }
 
 
@@ -309,7 +360,7 @@
                 this.getData();
                 this.buyCount = 1;
                 //默认让商品介绍被选中
-                this.isSlected=0;
+                this.isSlected = 0;
 
             }
         }
@@ -371,5 +422,23 @@
         width: 50px;
         height: 50px;
         float: left;
+    }
+
+    .goods-spec .spec-box .btn-buy .add.disabled {
+        background-color: grey;
+        cursor: not-allowed;
+    }
+
+    .fly-img {
+        width: 50px;
+        height: 50px;
+        /* display: none; */
+        position: absolute;
+    }
+
+    .fly-img.animate {
+        transform: rotate(3600deg) scale(0.5);
+        opacity: 0;
+        transition: transform 1s, opacity 2s;
     }
 </style>
